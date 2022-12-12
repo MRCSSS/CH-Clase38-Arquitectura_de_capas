@@ -1,0 +1,42 @@
+<h1 style="color:blue;">Ingrese Producto</h1>
+<br>
+<form>
+    <div class="form-group">
+        <label for="title"><b>Nombre:</b></label>
+        <input id="title" class="form-control" type="text" name="title">
+    </div>
+    <div class="form-group">
+        <label for="price"><b>Precio:</b></label>
+        <input id="price" class="form-control" type="number" name="price" step="0.01">
+    </div>
+    <div class="form-group">
+        <label for="thumbnail"><b>Imagen:</b></label>
+        <input id="thumbnail" class="form-control" type="text" name="thumbnail">
+    </div>
+    <button class="btn btn-success mt-3 mb-3" onclick="addProduct()">Enviar</button>
+</form>
+<h2 style="color:crimson;">Lista de Productos</h2>
+{{#if data}}
+    <div class="table-responsive">
+        <table class="table table-dark">
+            <tr> 
+                <th>Nombre</th> 
+                <th style="text-align: center;">Precio</th> 
+                <th style="text-align: center;">Imagen</th> 
+            </tr>
+            <!-- filas -->
+            {{#each data}}
+            <tr> 
+                <td>{{this.title}}</td>
+                <td style="text-align: center;">$ {{this.price}}</td>
+                <td style="text-align: center;">
+                    <img width="30" src="{{this.thumbnail}}" alt="">
+                </td>
+            </tr>
+            {{/each}}
+            <!-- Fin filas -->
+        </table>
+    </div>
+{{else}}
+    <h3 class="alert alert-warning">No se encontraron productos</h3>
+{{/if}}

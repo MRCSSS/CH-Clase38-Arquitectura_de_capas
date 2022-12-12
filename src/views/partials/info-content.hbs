@@ -1,0 +1,36 @@
+<div id='root' class="container mt-3">
+    <div id='info' class="jumbotron bg-dark text-white">
+        <h1>Información</h1>
+        <div id='info' class="jumbotron text-info">
+            {{#if args}}
+                <h5>Argumentos de entrada: 
+                    <small>
+                        <ul class="text-secondary">
+                            {{#each args}}
+                                {{#if this.port}}<li>Puerto: {{this.port}}</li>{{/if}}
+                                {{#if this.serverMode}}<li>Modo del Server: {{this.serverMode}}</li>{{/if}}
+                                {{#if this.value}}<li>{{this.value}}</li>{{/if}}
+                            {{/each}}
+                        </ul>
+                    </small>
+                </h5>
+            {{else}}
+                <h5>Sin argumentos de entrada: 
+                    <small>
+                        <ul class="text-secondary">
+                            <li>Puerto (default): 8080</li>
+                            <li>Modo del Server (default): FORK</li>
+                        </ul>
+                    </small>
+                </h5>
+            {{/if}}
+            <h5>Path de ejecución: <small class="text-secondary">{{path}}</small></h5>
+            <h5>Nombre de la plataforma (SO): <small class="text-secondary">{{os}}</small></h5>
+            <h5>Cantidad de núcleos (CPU): <small class="text-secondary">{{cores}}</small></h5>
+            <h5>Process id: <small class="text-secondary">{{pid}}</small></h5>
+            <h5>Versión de node.js: <small class="text-secondary">{{nodeVersion}}</small></h5>
+            <h5>Directorio del proyecto: <small class="text-secondary">{{directory}}</small></h5>
+            <h5>Memoria total reservada (rss): <small class="text-secondary">{{memUsage.rss}}</small></h5>
+        </div>
+    </div>
+</div>
