@@ -11,9 +11,7 @@ import { Strategy as LocalStrategy } from "passport-local";
 import path from 'path';
 import { Server } from 'socket.io';
 import { msgsDao, productsDao, usersDao } from './src/daos/index.js';
-import register from './routers/register.routes.js.js';
-import randoms from './src/routers/randoms.routes.js';
-import info from './routers/info.routes.js.js';
+import domOper from './routers/dominio.routes.js';
 import { config, logger } from './src/utils/config.js';
 
 /* ====================== INSTANCIA DE SERVER ======================= */
@@ -92,69 +90,14 @@ app.set('views', path.join(process.cwd(), 'src/views'));
 app.set('view engine', 'hbs');
 
 /* ============================== RUTAS ============================= */
-app.use('/api/v1/operaciones', routerOperaciones);
-
-/*Agregamos routers a la app*/
+app.use('/', domOper)
 app.all('*', (req, res)=>{
+    logger.warn(`{ url: '${req.baseUrl}${req.url}', method: '${req.method}' }`);
     res.status(404).json({
         status: 404,
         route: `${req.method} ${req.url}`,
         msg: `No implemented route`
     })
-});
-
-
-
-app.get('/', (req, res) => {
-    logger.info(`{ url: '${req.baseUrl}${req.url}', method: '${req.method}' }`);
-    if(!req.session.user) {
-        res.redirect('/login');
-    } else {
-        res.redirect('/home');
-    }
-})
-
-app.get('/home', auth, async (req, res) => {
-    logger.info(`{ url: '${req.baseUrl}${req.url}', method: '${req.method}' }`);
-    const user = await usersDao.searchUser(req.session.passport.user);
-    res.render('partials/home', {layout: 'home', user: user.username , email: user.email});
-});
-
-app.get('/login', (req, res) => {
-    logger.info(`{ url: '${req.baseUrl}${req.url}', method: '${req.method}' }`);
-    res.render('partials/login', {layout: 'login'});
-});
-
-app.post('/login', ()=>{logger.info(`{ url: '${req.url}', method: '${req.method}' }`);}, passport.authenticate('local', {
-    successRedirect: '/home', 
-    failureRedirect: '/login-error'
-}));
-
-app.get('/login-error', (req, res)=>{
-    logger.info(`{ url: '${req.baseUrl}${req.url}', method: '${req.method}' }`);
-    res.render('partials/login-error', {layout: 'login'});
-})
-
-app.get('/logout', async (req, res)=> {
-    logger.info(`{ url: '${req.baseUrl}${req.url}', method: '${req.method}' }`);
-    const user = await usersDao.searchUser(req.session.passport.user);
-
-    req.session.destroy(err=>{
-        if (err) {
-            res.json({err});
-        } else {
-            res.render('partials/logout', { layout: 'logout', user: user.username });
-        }
-    });
-});
-
-app.use('/register', register);
-app.use('/api', randoms);
-app.use('/info', info);
-
-app.get('*', (req, res) => {
-    logger.warn(`{ url: '${req.baseUrl}${req.url}', method: '${req.method}' }`);
-    res.status(404).send('404 - Page not found!!');
 });
 
 /* ===================== NORMALIZANDO MENSAJES ====================== */
