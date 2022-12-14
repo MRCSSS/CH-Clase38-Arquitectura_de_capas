@@ -1,7 +1,7 @@
 /* ---------------------- MODULOS IMPORTADOS ------------------------ */
 import { promises as fs } from 'fs';
 import ContFile from '../../containers/ContFile.js';
-import {logger} from '../../utils/config.js';
+import {logger} from '../../utils/logger.js';
 
 /* ------------------------ CLASE CONTENEDOR ------------------------ */
 class ProductsDaoFile extends ContFile {

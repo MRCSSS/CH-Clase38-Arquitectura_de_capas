@@ -1,110 +1,53 @@
 /* ============================ MODULOS ============================= */
+import bcrypt from 'bcrypt';
 import { Router } from "express";
-import { rootCtrlr } from "../controllers/dominio.controller.js";
+import passport from 'passport';
+import { Strategy as LocalStrategy } from 'passport-local';
+import { getRegisterCtrlr, postRegisterCtrlr, getHomeCtrlr, getLoginCtrlr, getLogoutCtrlr, getRootCtrlr, postLoginCtrlr } from "../controllers/dominio.controller.js";
+import { usersDao } from '../daos/index.js';
 
 /* ====================== INSTANCIA DE SERVER ======================= */
 const domOper = Router();
 
-/* ============================== RUTAS ============================= */
-domOper.get('/', rootCtrlr);
-domOper.get('/home', auth, async (req, res) => {
-    logger.info(`{ url: '${req.baseUrl}${req.url}', method: '${req.method}' }`);
-    const user = await usersDao.searchUser(req.session.passport.user);
-    res.render('partials/home', {layout: 'home', user: user.username , email: user.email});
-});
+/* ========================== MIDDLEWARES =========================== */
+    /* ----------------------- Passport ------------------------ */
+passport.use(new LocalStrategy(
+    async function(username, password, done) {
+        const user = await usersDao.searchUser(username);
 
-domOper.get('/login', (req, res) => {
-    logger.info(`{ url: '${req.baseUrl}${req.url}', method: '${req.method}' }`);
-    res.render('partials/login', {layout: 'login'});
-});
-
-domOper.post('/login', () => {logger.info(`{ url: '${req.url}', method: '${req.method}' }`);}, passport.authenticate('local', {
-    successRedirect: '/home', 
-    failureRedirect: '/login-error'
-}));
-
-domOper.get('/login-error', (req, res)=>{
-    logger.info(`{ url: '${req.baseUrl}${req.url}', method: '${req.method}' }`);
-    res.render('partials/login-error', {layout: 'login'});
-})
-
-domOper.get('/logout', async (req, res)=> {
-    logger.info(`{ url: '${req.baseUrl}${req.url}', method: '${req.method}' }`);
-    const user = await usersDao.searchUser(req.session.passport.user);
-
-    req.session.destroy(err=>{
-        if (err) {
-            res.json({err});
+        if (user === null) {
+            return done(null, false);
         } else {
-            res.render('partials/logout', { layout: 'logout', user: user.username });
-        }
-    });
-});
+            const match = await bcrypt.compare(password, user.password);
 
-
-
-
-
-
-
-/* ============================== RUTAS ============================= */
-domOper.get('/', compression(), (req, res) => {
-    logger.info(`{ url: '${req.baseUrl}${req.url}', method: '${req.method}' }`);
-    const args = process.argv.slice(2);
-    let argsData = [];
-
-    for (let i = 0; i < args.length; i++) {
-        if (args[i] === '-p') {
-            argsData.push({port: args[i+1]});
-            i++;
-        } else if (args[i] === '-s') {
-            argsData.push({serverMode: args[i+1].toUpperCase()});
-            i++;
-        } else {
-            argsData.push({value: args[i]});
+            if(!match){
+                return done(null, false);
+            }
+            return done(null, user);
         }
     }
-    let infoData = {
-        layout: 'info',
-        args: argsData,
-        path: process.execPath,
-        os: process.platform,
-        cores: os.cpus().length, 
-        pid: process.pid,
-        nodeVersion: process.version,        
-        directory: process.cwd(),
-        memUsage: process.memoryUsage(),
-    };
-    res.render('partials/info-content', infoData );
+));
+
+passport.serializeUser((user, done)=>{
+    done(null, user.username);
 });
 
-    
-
-
-
-
-
-
-
-
-domOper.get('/', (req, res) => {
-    logger.info(`{ url: '${req.baseUrl}${req.url}', method: '${req.method}' }`);
-    res.render('partials/register', {layout: 'register'});
+passport.deserializeUser( async (username, done)=>{
+    const user = await usersDao.searchUser(username);
+    done(null, user);
 });
 
-domOper.post('/', async (req, res)=>{
-    logger.info(`{ url: '${req.baseUrl}${req.url}', method: '${req.method}' }`);
-    const {username, password, email } = req.body;
-    const userExists = await usersDao.searchUser(username);
+domOper.use(passport.initialize());
+domOper.use(passport.session());
 
-    if (userExists !== null) {
-        res.render('partials/register-error', {layout: 'register'});
-    } else {
-        const newUser = {username, password: await generateHashPassword(password), email};
-        await usersDao.save(newUser);
-        res.redirect('../login')
-    }
-})
+/* ============================== RUTAS ============================= */
+domOper.get('/', getRootCtrlr);
+domOper.get('/home', getHomeCtrlr);
+domOper.get('/login', getLoginCtrlr);
+domOper.post('/login', passport.authenticate('local', { successRedirect: '/home', failureRedirect: '/login-error' }), postLoginCtrlr);
+domOper.get('/logout', getLogoutCtrlr);
+domOper.get('/register', getRegisterCtrlr);
+domOper.post('/register', postRegisterCtrlr);
 
 /* ====================== MODULOS EXPORTADOS ======================== */
 export default domOper;

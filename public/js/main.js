@@ -86,7 +86,3 @@ function addProduct() {
 
     socket.emit('client-prods', prod)
 }
-
-function logout() {
-    window.location.href = "/logout";
-}

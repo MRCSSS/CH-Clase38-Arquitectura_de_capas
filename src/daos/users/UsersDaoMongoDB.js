@@ -1,6 +1,6 @@
 /* ---------------------- MODULOS IMPORTADOS ------------------------ */
 import ContMongoDB from '../../containers/ContMongoDB.js';
-import {logger} from '../../utils/config.js';
+import {logger} from '../../utils/logger.js';
 
 /* ------------------------ CLASE CONTENEDOR ------------------------ */
 class UsersDaoMongoDB extends ContMongoDB {
